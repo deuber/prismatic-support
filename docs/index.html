@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="An outside view of Prismatic's Technical Support Engineer role: the life of an integration issue, who files the tickets, how I'd troubleshoot them, and how my background maps to it.">
+<meta property="og:title" content="Keeping Integrations Running">
+<meta property="og:description" content="Role investigation by David Deuber: supporting integrations built on Prismatic, from ticket to trend.">
+<meta name="color-scheme" content="light dark">
+<title>Keeping Integrations Running</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column (field notes) with wider breakouts for the issue track and tables */
+:root {
+  --bg: #f3f7f7;
+  --surface: #ffffff;
+  --fg: #132326;
+  --muted: #53686c;
+  --line: #d4e0e1;
+  --accent: #0b7480;       /* integration teal */
+  --accent-soft: #dcf0f1;
+  --flag: #b86e00;         /* failure amber */
+  --flag-soft: #fbefd9;
+  --ok: #1f7a4d;
+  --code-bg: #e7efef;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1618; --surface: #162124; --fg: #e2ecec; --muted: #94a9ac; --line: #283a3e;
+    --accent: #5cc6cf; --accent-soft: #15353a; --flag: #f0b357; --flag-soft: #3a2a12; --ok: #5fc694;
+    --code-bg: #1b2a2d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1618; --surface: #162124; --fg: #e2ecec; --muted: #94a9ac; --line: #283a3e;
+  --accent: #5cc6cf; --accent-soft: #15353a; --flag: #f0b357; --flag-soft: #3a2a12; --ok: #5fc694;
+  --code-bg: #1b2a2d; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+img { max-width: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16.5px; line-height: 1.62; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 56px 80px; }
+.col { max-width: 700px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5.5vw, 3.6rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 18px; padding-block: 44px; border-top: 1px solid var(--line); }
+header { display: grid; gap: 20px; padding-bottom: 40px; }
+.lede { font-size: 1.2rem; color: var(--fg); max-width: 680px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; font-size: 1.05rem; max-width: 680px; }
+code, pre { font-family: var(--mono); font-size: 0.86rem; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+
+/* Scale figures */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.fact { background: var(--surface); padding: 18px; display: grid; gap: 4px; align-content: start; }
+.fact b { font-family: var(--display); font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.fact span { font-size: 0.9rem; color: var(--muted); }
+
+/* Issue track */
+.track { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; counter-reset: stage; margin-top: 8px; }
+.stage { counter-increment: stage; display: grid; gap: 10px; align-content: start; padding: 0 14px 0 0; position: relative; min-width: 0; }
+.stage::before { content: counter(stage, decimal-leading-zero); font-family: var(--mono); font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+.stage .bar { height: 4px; background: var(--accent); margin-right: -14px; }
+.stage:last-child .bar { margin-right: 0; background: var(--ok); }
+.stage h3 { font-size: 1rem; }
+.stage p { font-size: 0.88rem; color: var(--muted); }
+@media (max-width: 860px) {
+  .track { grid-template-columns: 1fr; gap: 22px; }
+  .stage { padding: 0 0 0 16px; border-left: 3px solid var(--accent); }
+  .stage .bar { display: none; }
+  .stage:last-child { border-left-color: var(--ok); }
+}
+
+/* Stage detail cards */
+.stage-detail { display: grid; gap: 14px; }
+.sd { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px 24px; }
+.sd > h3 { grid-row: span 3; }
+.sd h3 small { display: block; font-family: var(--mono); font-weight: 400; font-size: 0.75rem; color: var(--accent); margin-bottom: 4px; letter-spacing: 0.06em; }
+.sd dl { margin: 0; display: grid; gap: 10px; }
+.sd dt { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.sd dd { margin: 2px 0 0; font-size: 0.95rem; }
+.sd dd.risk { color: var(--fg); background: var(--flag-soft); border-radius: 4px; padding: 6px 10px; }
+.sd dd.auto { background: var(--accent-soft); border-radius: 4px; padding: 6px 10px; }
+@media (max-width: 640px) { .sd { grid-template-columns: 1fr; } .sd > h3 { grid-row: auto; } }
+
+/* Tables */
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 500; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; }
+
+/* Triage layers */
+.layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.layer { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.layer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: 0.92rem; }
+.tag { justify-self: start; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); }
+
+/* Code */
+pre { background: var(--code-bg); border-radius: 6px; padding: 18px 20px; overflow-x: auto; line-height: 1.55; margin: 0; }
+.c { color: var(--muted); }
+.k { color: var(--accent); }
+.s { color: var(--ok); }
+
+/* Tools list */
+.tools { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.tool { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 6px 24px; padding-block: 16px; border-bottom: 1px solid var(--line); }
+.tool h3 { font-size: 1rem; }
+.tool p { font-size: 0.95rem; }
+.tool .why { color: var(--muted); font-size: 0.88rem; grid-column: 2; }
+@media (max-width: 640px) { .tool { grid-template-columns: 1fr; } .tool .why { grid-column: 1; } }
+
+/* Day timeline */
+.day { display: grid; gap: 0; }
+.slot { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 18px; padding-block: 12px; border-bottom: 1px dashed var(--line); }
+.slot time { font-family: var(--mono); font-size: 0.88rem; color: var(--accent); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.slot p { font-size: 0.95rem; }
+
+/* Questions */
+ol.questions { margin: 0; padding-left: 1.4em; display: grid; gap: 12px; }
+ol.questions li::marker { font-family: var(--mono); color: var(--accent); }
+
+/* Fit table */
+.chip { display: inline-block; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+.chip.strong { background: var(--accent-soft); color: var(--accent); }
+.chip.partial { background: var(--flag-soft); color: var(--flag); }
+td.evidence { font-weight: 400; }
+.gaps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.gap { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.gap p { font-size: 0.92rem; }
+
+/* Values */
+.values { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.value { display: grid; gap: 8px; align-content: start; padding-top: 12px; border-top: 3px solid var(--accent); }
+.value p { font-size: 0.93rem; }
+
+footer { border-top: 1px solid var(--line); padding-top: 28px; display: grid; gap: 10px; font-size: 0.88rem; color: var(--muted); }
+footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: no-preference) { a { transition: color .15s; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Role investigation · Technical Support Engineer · Prismatic</div>
+  <h1>Keeping Integrations Running</h1>
+  <p class="lede">Before my next conversation with Prismatic, I worked out what I think this job is day to day: who files the tickets, how one integration issue moves from report to fix, where it's likely to go wrong, and what I'd build to make the next one faster. This is an outside view based on public information and the job description. I expect parts of it to be wrong, and the conversation is my chance to find out which.</p>
+  <div class="meta">
+    <span>David Deuber</span>
+    <span>October 2026</span>
+    <span>Companion to <a href="https://deuber.github.io/webhook-integration-demo/">webhook-integration-demo</a></span>
+  </div>
+</header>
+
+<section>
+  <div class="eyebrow">Context</div>
+  <h2>Why this role matters now</h2>
+  <div class="facts">
+    <div class="fact"><b>4.2B</b><span>integration executions so far in 2026, up 53% on last year</span></div>
+    <div class="fact"><b>33,000</b><span>workflows built inside customers' products with the embedded builder</span></div>
+    <div class="fact"><b>3</b><span>ways to build: code-native, low-code, and the embedded workflow builder with AI Copilot</span></div>
+    <div class="fact"><b>100s</b><span>of B2B software companies, from startups to the Fortune 500</span></div>
+  </div>
+  <div class="col" style="display:grid;gap:14px">
+    <p>Prismatic sells integration infrastructure to B2B software companies. Those companies build integrations on it, and their own customers install and run them. A single support ticket can involve three parties: the Prismatic customer, their customer, and the third-party app at the other end of the integration.</p>
+    <p>That chain is getting longer. At Connect 2026, Prismatic demoed the embedded workflow builder with AI Copilot: the software company publishes a workflow template, and its customer starts from that template and customizes it in plain language, without writing code. The vendor controls which connectors are available, and Prismatic's security model (data isolation between customers, plus data processing agreements) is what makes it safe to offer. The pitch is that customers build their own automations instead of filing tickets. The workflows multiply, and more of the people debugging them didn't write them. Prismatic's own roadmap reflects this: a rebuilt execution management and debugging experience is listed under "Now." Support is also moving into Customer Engineering, next to the engineers who help customers design their integrations.</p>
+  </div>
+  <p class="callout">My read: Prismatic is paying for <strong>fast, accurate answers about integrations nobody on the support team wrote</strong>, and for turning repeated questions into docs, product feedback and fewer tickets.</p>
+</section>
+
+<section>
+  <div class="eyebrow">The job, as a sequence</div>
+  <h2>One integration issue, from ticket to trend</h2>
+  <div class="col"><p>The posting lists the work as triage, troubleshooting, collaboration with Engineering and Product, and reporting trends. In order, that's a track. Below it is what I think each stage involves, where it breaks, and what I'd improve.</p></div>
+  <div class="track" aria-label="Support issue lifecycle">
+    <div class="stage"><div class="bar"></div><h3>Intake</h3><p>Who is affected, which instance, which execution</p></div>
+    <div class="stage"><div class="bar"></div><h3>Reproduce</h3><p>A failing run next to a passing one</p></div>
+    <div class="stage"><div class="bar"></div><h3>Isolate</h3><p>Delivery, auth, data, or the third party</p></div>
+    <div class="stage"><div class="bar"></div><h3>Resolve</h3><p>Fix or workaround, in the customer's terms</p></div>
+    <div class="stage"><div class="bar"></div><h3>Escalate</h3><p>A complete case for Engineering</p></div>
+    <div class="stage"><div class="bar"></div><h3>Close the loop</h3><p>Docs, trend tags, product feedback</p></div>
+  </div>
+
+  <div class="stage-detail">
+    <div class="sd">
+      <h3><small>01</small>Intake</h3>
+      <dl><dt>What I'd do</dt><dd>Work out who is affected: one end user, every instance of one integration, or a whole customer. Get the instance, flow, execution ID and timestamp before anything else. Set priority by impact and whether a workaround exists, not by the tone of the ticket.</dd></dl>
+      <dl><dt>Where it breaks</dt><dd class="risk">"The integration stopped working" with no instance named. A non-technical end user describing a problem in a marketplace their vendor built. A production outage filed as a how-to question.</dd></dl>
+      <dl><dt>What I'd improve</dt><dd class="auto">An intake macro that asks for instance, flow, execution ID, and expected versus actual result, with a link showing where to find an execution ID.</dd></dl>
+    </div>
+    <div class="sd">
+      <h3><small>02</small>Reproduce</h3>
+      <dl><dt>What I'd do</dt><dd>Pull the failing execution and a recent successful one for the same flow, and compare step inputs and outputs until they diverge. Rerun with the same payload in a test instance when that's safe.</dd></dl>
+      <dl><dt>Where it breaks</dt><dd class="risk">The failure depends on data that only exists in the customer's production account on the third-party app. Intermittent failures that don't reproduce on demand.</dd></dl>
+      <dl><dt>What I'd improve</dt><dd class="auto">A side-by-side view of two executions that highlights the first step where they differ.</dd></dl>
+    </div>
+    <div class="sd">
+      <h3><small>03</small>Isolate</h3>
+      <dl><dt>What I'd do</dt><dd>Check layers in order of how cheap they are to rule out: did the trigger fire, is the connection authenticated, is the data the expected shape, and what did the third-party API actually return.</dd></dl>
+      <dl><dt>Where it breaks</dt><dd class="risk">An expired token that shows up as a data error two steps later. A third-party API that returns 200 and does nothing. A config variable set differently for one customer.</dd></dl>
+      <dl><dt>What I'd improve</dt><dd class="auto">A per-layer checklist kept in the knowledge base, updated every time a new failure type shows up.</dd></dl>
+    </div>
+    <div class="sd">
+      <h3><small>04</small>Resolve</h3>
+      <dl><dt>What I'd do</dt><dd>Give the exact change (which step, which input, which setting) and explain it in terms of what the customer will see. Confirm the next execution succeeds before closing.</dd></dl>
+      <dl><dt>Where it breaks</dt><dd class="risk">The fix works for one instance while other customers on the same integration version keep failing and haven't filed yet.</dd></dl>
+      <dl><dt>What I'd improve</dt><dd class="auto">Check every instance on that integration version for the same error, and contact those customers before they write in.</dd></dl>
+    </div>
+    <div class="sd">
+      <h3><small>05</small>Escalate</h3>
+      <dl><dt>What I'd do</dt><dd>Hand Engineering a case they can act on without asking anything: execution IDs, what I ruled out and how, the smallest reproduction I found, and how many customers it affects.</dd></dl>
+      <dl><dt>Where it breaks</dt><dd class="risk">Escalations bounce back with questions. Engineering can't reproduce without customer data. The customer hears nothing while it waits.</dd></dl>
+      <dl><dt>What I'd improve</dt><dd class="auto">The same escalation template every time, and a scheduled update to the customer even when there's no news.</dd></dl>
+    </div>
+    <div class="sd">
+      <h3><small>06</small>Close the loop</h3>
+      <dl><dt>What I'd do</dt><dd>Turn anything I explained twice into a docs article or a saved reply. Tag the ticket with a root cause so patterns show up across customers.</dd></dl>
+      <dl><dt>Where it breaks</dt><dd class="risk">The same question gets answered twenty times in private tickets. Product hears about a pain point from sales before support.</dd></dl>
+      <dl><dt>What I'd improve</dt><dd class="auto">A short monthly trend summary for Product and Account Management: top root causes, affected connectors, and what would remove them.</dd></dl>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Who's on the other end</div>
+  <h2>Four kinds of user, four kinds of ticket</h2>
+  <div class="col"><p>The posting says support covers "technical and non-technical customers." On Prismatic, that range is wide. Each kind of user needs a different first question.</p></div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>User</th><th>What they're doing</th><th>What tends to go wrong</th><th>First thing I'd check</th></tr></thead>
+      <tbody>
+        <tr><td>Code-native developer</td><td>Writing integrations in TypeScript with the Spectral SDK and importing them with the Prism CLI</td><td>Build or import errors, SDK version changes, logic bugs where log lines are the main evidence</td><td>Execution logs, the integration's YAML definition, SDK version</td></tr>
+        <tr><td>Low-code builder</td><td>Assembling flows from connectors in the integration designer</td><td>References between steps, data format conversion, branching and loops over paginated results</td><td>Each step's input and output in the failing execution</td></tr>
+        <tr><td>End user with AI Copilot</td><td>Describing a workflow in plain language inside their vendor's product</td><td>A plausible workflow with one field mapped wrong, or a connector the vendor didn't expose</td><td>The steps Copilot generated on the canvas, and the workflow template and connectors allowed</td></tr>
+        <tr><td>End user installing an integration</td><td>Enabling an integration from the embedded marketplace and filling in the config wizard</td><td>OAuth connection failures, wrong redirect URI or scopes, credentials that later expire or get revoked</td><td>The connection's auth state, scopes, and the config values for that instance</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Troubleshooting</div>
+  <h2>Work through the layers, write it down, escalate cleanly</h2>
+  <div class="col"><p>The posting names the main categories: "debugging API requests, authentication issues, and data formatting challenges." I'd check the cheapest layer to rule out first, and keep notes as I go so the escalation is already written if I need one.</p></div>
+  <div class="layers">
+    <div class="layer"><span class="tag">Delivery</span><h3>Did it arrive?</h3><ul><li>Trigger fired, or schedule ran in the right timezone</li><li>Correct webhook URL for this instance and flow</li><li>Endpoint security and API keys</li><li>Retries and duplicate deliveries from the sender</li></ul></div>
+    <div class="layer"><span class="tag">Auth</span><h3>Who is calling?</h3><ul><li>401 means the credentials are missing or invalid; 403 means they lack permission</li><li>OAuth refresh token expired or revoked</li><li>Scopes changed on the third-party app</li><li>Auth code versus client credentials; JWT expiry and clock skew</li></ul></div>
+    <div class="layer"><span class="tag">Data</span><h3>Is the shape right?</h3><ul><li>Content type matches the body (XML, JSON, CSV)</li><li>Nesting and paths after parsing</li><li>Pagination that stops after page one</li><li>Encoding, date formats, nulls, optional fields</li></ul></div>
+    <div class="layer"><span class="tag">Third party</span><h3>What did they say?</h3><ul><li>Rate limits and <code>Retry-After</code></li><li>Timeouts and 5xx responses</li><li>API version changes and deprecations</li><li>A 200 response that didn't do anything</li></ul></div>
+  </div>
+  <div class="col"><p>Every escalation includes the symptom, the customer and instance, the execution IDs, what I ruled out and how, and how many customers it affects.</p></div>
+</section>
+
+<section>
+  <div class="eyebrow">The take-home assessment</div>
+  <h2>I solved it twice</h2>
+  <div class="col" style="display:grid;gap:14px">
+    <p>Prismatic's process includes a take-home assessment: build an integration on the platform and write a query against Prismatic's API. I'm keeping the solutions off this page so the assessment stays fair for other candidates. Here's how I approached it.</p>
+  </div>
+  <div class="stage-detail">
+    <div class="sd">
+      <h3><small>First</small>Low-code</h3>
+      <dl><dt>What I built</dt><dd>The integration in Prismatic's low-code designer, as the assessment asked.</dd></dl>
+      <dl><dt>How I checked it</dt><dd class="auto">The assignment came with no sample data, so I created dummy records in a live account, ran the integration and query against them, confirmed every field came back as expected, and then deleted the test data.</dd></dl>
+      <dl><dt>What I shared</dt><dd>A support runbook PDF for Chris and Josh, covering the build, how I verified it, and the mistakes I hit along the way.</dd></dl>
+    </div>
+    <div class="sd">
+      <h3><small>Second</small>Code-native</h3>
+      <dl><dt>Why</dt><dd>Once the first version worked, I wanted to see the same problem from a developer's side, so I rebuilt it as a code-native integration in TypeScript with the Spectral SDK and the Prism CLI.</dd></dl>
+      <dl><dt>How I checked it</dt><dd class="auto">Imported it into Prismatic, sent the same test payload, and confirmed the result in the execution logs.</dd></dl>
+      <dl><dt>What I shared</dt><dd>A companion runbook: what a healthy run looks like in the logs, known limitations, and what I'd change before production.</dd></dl>
+    </div>
+  </div>
+  <p class="callout">Both versions were well received. I felt very comfortable talking them through with Chris and Josh, and I came away believing we'd work well together as a team.</p>
+</section>
+
+<section>
+  <div class="eyebrow">Hands-on</div>
+  <h2>What I built to learn the bonus skills</h2>
+  <div class="col" style="display:grid;gap:12px">
+    <p>The posting lists webhooks, GraphQL and OAuth 2.0 flows as bonus experience. My professional API work has been mostly REST, so I built <a href="https://github.com/deuber/webhook-integration-demo">webhook-integration-demo</a> to work through the rest hands-on. It's a TypeScript server that receives GitHub webhooks, verifies their signatures, skips duplicate deliveries, makes follow-up REST and GraphQL calls, and runs a full OAuth 2.0 authorization code flow. There's a <a href="https://deuber.github.io/webhook-integration-demo/">live version</a> that runs in the browser with no setup.</p>
+    <p>Signature verification is where a lot of webhook tickets start, so it's the piece I'd point a customer to first:</p>
+  </div>
+<pre><span class="c">// src/webhooks/github.ts: reject any delivery that wasn't signed with our secret</span>
+<span class="k">function</span> isValidSignature(rawBody: Buffer, signatureHeader: string | undefined): boolean {
+  <span class="k">const</span> secret = process.env.WEBHOOK_SECRET;
+  <span class="k">if</span> (!secret || !signatureHeader) <span class="k">return</span> false;
+
+  <span class="k">const</span> expected = <span class="s">"sha256="</span> + createHmac(<span class="s">"sha256"</span>, secret).update(rawBody).digest(<span class="s">"hex"</span>);
+  <span class="k">const</span> expectedBuf = Buffer.from(expected);
+  <span class="k">const</span> actualBuf = Buffer.from(signatureHeader);
+
+  <span class="c">// Lengths must match before timingSafeEqual, or it throws.</span>
+  <span class="k">if</span> (expectedBuf.length !== actualBuf.length) <span class="k">return</span> false;
+  <span class="k">return</span> timingSafeEqual(expectedBuf, actualBuf);
+}</pre>
+  <div class="col" style="display:grid;gap:12px">
+    <p>Reviewing it later, I found two bugs that are typical of real integration tickets:</p>
+    <ul style="margin:0;padding-left:1.1em;display:grid;gap:8px">
+      <li><strong>Lost retries.</strong> A delivery is marked as seen before it's processed. If the follow-up API call fails, the sender's retry is dropped as a duplicate and the event is lost.</li>
+      <li><strong>Silent failures.</strong> The REST calls don't check <code>response.ok</code>, so a 403 from GitHub still reports success.</li>
+    </ul>
+    <p>Both are the kind of thing a customer would describe as "it works most of the time."</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Tooling and process</div>
+  <h2>What I'd build in the first 60 days</h2>
+  <div class="col"><p>These are ideas from outside. Some may already exist. I've ordered them by how much repeated work each would remove.</p></div>
+  <div class="tools">
+    <div class="tool"><h3>Intake macro</h3><p>Asks for instance, flow, execution ID, and expected versus actual result on every new ticket.</p><p class="why">Saves the first round of back-and-forth on most tickets.</p></div>
+    <div class="tool"><h3>Execution compare</h3><p>Shows a failing and a passing execution of the same flow side by side and highlights the first step where they differ.</p><p class="why">"Works sometimes" tickets get solved by finding the difference, and this finds it in one view.</p></div>
+    <div class="tool"><h3>Connection health check</h3><p>Lists connections across a customer's instances that are failing to refresh or close to expiring.</p><p class="why">Lets support contact the customer before an expired token becomes an outage ticket.</p></div>
+    <div class="tool"><h3>Copilot ticket playbook</h3><p>A short guide for tickets about AI-built workflows: what to check on the canvas, which template and connector limits apply, and when it's a Copilot problem.</p><p class="why">These tickets are new, and they'll grow with the embedded workflow builder.</p></div>
+    <div class="tool"><h3>Escalation template</h3><p>One format for every escalation: symptom, instance, execution IDs, what was ruled out, impact.</p><p class="why">Engineering can start work without asking questions first.</p></div>
+    <div class="tool"><h3>Root-cause tags and trend report</h3><p>Each closed ticket gets a root-cause tag, rolled up monthly into the top patterns and the docs or product change that would remove each one.</p><p class="why">This is the posting's "identify, gather data, and communicate customer trends to internal teams."</p></div>
+  </div>
+  <div class="col"><p>My working method is the one I wrote up in the <a href="https://deuber.github.io/hermes-claude-automations/">Hermes project</a> and use at Atlassian with Rovo agents. I decide what a tool should do and what "correct" means, an AI coding assistant writes and audits the code, and I check the results against real data before anyone relies on them. Prismatic publishes AI rulesets and Skills for coding assistants, so I'd expect customers to use the same approach, and I'd want to understand how those tools shape the code that ends up in tickets.</p></div>
+</section>
+
+<section>
+  <div class="eyebrow">Fit</div>
+  <h2>How my background maps to the posting</h2>
+  <div class="col"><p>I've spent more than 10 years taking escalated technical problems to root cause and building tools so they stop coming back. Here is each requirement from the posting and where I've done that work.</p></div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Posting asks for</th><th></th><th>Where I've done it</th></tr></thead>
+      <tbody>
+        <tr><td>3+ years in technical support or engineering</td><td><span class="chip strong">Strong</span></td><td class="evidence">Nearly 8 years as a Senior Technical Support Engineer on Polarion ALM at Siemens, owning enterprise escalations end to end. Cloud Migration Engineer at Atlassian since January 2025.</td></tr>
+        <tr><td>REST, GraphQL, SOAP</td><td><span class="chip strong">REST</span> <span class="chip partial">GraphQL, SOAP</span></td><td class="evidence">REST daily at Atlassian and Siemens to diagnose and validate customer environments. GraphQL hands-on in the webhook demo. SOAP I'd ramp up on through the connectors that use it.</td></tr>
+        <tr><td>OAuth 2.0 and JWT</td><td><span class="chip strong">OAuth</span> <span class="chip partial">JWT</span></td><td class="evidence">Resolve SSO/SAML and OAuth failures with security and identity teams during Atlassian cloud cutovers. Built OAuth into FitBike and an authorization code flow with CSRF protection in the webhook demo. JWT I know from the same token-debugging work, not by name.</td></tr>
+        <tr><td>JSON, XML, YAML, CSV</td><td><span class="chip strong">Strong</span></td><td class="evidence">JSON in every REST investigation. The webhook demo reads JSON payloads, loads YAML config and writes a CSV event log.</td></tr>
+        <tr><td>Read and debug JavaScript, Node.js, TypeScript</td><td><span class="chip strong">Strong</span></td><td class="evidence">The webhook demo is TypeScript on Node.js. Built AvalancheMapper and Smartcar API integrations in Node.js. My professional scripting has been Python and Ruby.</td></tr>
+        <tr><td>Customer-facing communication</td><td><span class="chip strong">Strong</span></td><td class="evidence">200+ published technical solution articles. Training and product demos for client teams at Siemens. Runbooks and onboarding material for new engineers at Atlassian.</td></tr>
+        <tr><td>Work with Engineering and Product; report trends</td><td><span class="chip strong">Strong</span></td><td class="evidence">Escalate to engineering and product at Atlassian and feed customer trends back into product decisions. On-call rotations at Siemens and Atlassian.</td></tr>
+        <tr><td>Webhooks (bonus)</td><td><span class="chip strong">Built</span></td><td class="evidence">Signature verification, duplicate-delivery handling and follow-up API calls in the webhook demo, tested with real GitHub deliveries.</td></tr>
+        <tr><td>Low-code flow builders (bonus)</td><td><span class="chip strong">Strong</span></td><td class="evidence">Jira Automation daily at Atlassian. Administered Jira and Confluence workflows for 2,000 users at Pandora. Three production Rovo agents at Atlassian.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col"><p>Where I'd focus my first weeks:</p></div>
+  <div class="gaps">
+    <div class="gap"><h3>Prismatic's platform</h3><p>Build one integration each way (code-native, low-code, and with Copilot), and read the source of the most-used connectors, which are now open source.</p></div>
+    <div class="gap"><h3>JWT and SOAP</h3><p>Work through the connectors that use them, and write a troubleshooting note for each as I learn it, the way I built Diagtool for Polarion logs.</p></div>
+    <div class="gap"><h3>The ticket history</h3><p>Read a few months of closed tickets to learn the common patterns before I try to change anything.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Values</div>
+  <h2>How Prismatic's values show up in my work</h2>
+  <div class="values">
+    <div class="value"><h3>Give a Shit</h3><p>I solved the take-home twice, once in low-code and once in code, and built a webhook server with an OAuth flow on my own time to learn the parts of this job I hadn't done professionally.</p></div>
+    <div class="value"><h3>Progress Over Perfection</h3><p>I ship something that works, list what's not production-ready, and fix it next. The bug list above is an example.</p></div>
+    <div class="value"><h3>Same Team</h3><p>I wrote 200+ articles and onboarding guides so the next engineer doesn't have to rediscover what I learned.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">A sample day</div>
+  <h2>What a Tuesday might look like</h2>
+  <div class="col"><p>This is a hypothetical day, based on the posting's "a new challenge every day."</p></div>
+  <div class="day col">
+    <div class="slot"><time>08:00</time><p>Read the overnight queue. One customer's CRM sync has failed on 12 instances since 2 a.m., all with the same error. That points to a shared cause, so it goes to the top.</p></div>
+    <div class="slot"><time>08:45</time><p>All 12 instances share one OAuth app on the CRM side, and its client secret was rotated last night. I give the customer the exact connection setting to update and confirm the next run succeeds.</p></div>
+    <div class="slot"><time>10:30</time><p>A low-code builder's sync stops at 100 records. Their loop never requests page two. I show them where to use the cursor from the response, and save the answer as a draft docs article.</p></div>
+    <div class="slot"><time>12:00</time><p>A ticket from a vendor whose end user built a workflow with Copilot: Slack messages go to the wrong channel. The generated step used the template's default channel. I fix it, and note the pattern for Product.</p></div>
+    <div class="slot"><time>13:30</time><p>A code-native developer's import fails after an SDK upgrade. I reproduce it with the Prism CLI, find the changed function signature, and send the fix.</p></div>
+    <div class="slot"><time>15:00</time><p>Escalate a timeout pattern in one connector to Engineering, with execution IDs, what I ruled out, and the three affected customers.</p></div>
+    <div class="slot"><time>16:30</time><p>Tag today's tickets, publish the pagination article, and add the Copilot channel issue to the monthly trends.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">For the conversation</div>
+  <h2>What I want to learn from Prismatic</h2>
+  <ol class="questions col">
+    <li>Why is support moving into Customer Engineering, and how will support and solutions engineering divide the work?</li>
+    <li>As end users build workflows with Copilot, what new kinds of tickets are you seeing or expecting?</li>
+    <li>When vendors offer customer-built workflows, how often do their customers ask about data isolation and DPAs, and does support answer those questions or hand them to someone else?</li>
+    <li>Which layer causes the most tickets today: auth, data formats, third-party APIs, or questions about how to use the platform?</li>
+    <li>How will the execution and debugging redesign change how support troubleshoots?</li>
+    <li>How do support findings reach Product today, and what would you like to change about that?</li>
+    <li>How much of the role is reactive tickets versus docs, tooling and proactive outreach?</li>
+    <li>What would a strong first 90 days look like on your team?</li>
+  </ol>
+</section>
+
+<footer>
+  <p>Written by David Deuber from public sources and the posted job description. These are my assumptions, not Prismatic's internal processes.</p>
+  <ul>
+    <li><a href="https://prismatic.io/blog/prismatic-connect-2026-recap/">Prismatic Connect 2026 recap</a>: execution and workflow numbers, released features and roadmap (Sept 2026)</li>
+    <li><a href="https://vimeo.com/1227852381">Launch AI-Built Workflows Inside Your Product</a>: Connect 2026 session on workflow templates, customer-built workflows and the security model behind them (Sept 2026)</li>
+    <li><a href="https://prismatic.io/blog/ai-copilot-for-embedded-workflow-builder-early-access/">AI Copilot for the Embedded Workflow Builder</a>: plan and auto modes, early access (Mar 2026)</li>
+    <li><a href="https://prismatic.io/blog/build-faster-smarter-with-ai-and-best-practices/">Build Faster and Smarter with AI and Best Practices</a>: Prismatic's AI ruleset for coding assistants (May 2025)</li>
+    <li>Technical Support Engineer job posting, Prismatic (Aug 2026)</li>
+    <li><a href="https://prismatic.io/docs/">Prismatic documentation</a></li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>
