@@ -276,18 +276,19 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
   </div>
   <div class="stage-detail">
     <div class="sd">
-      <h3><small>First</small>Low-code</h3>
-      <dl><dt>What I built</dt><dd>The integration in Prismatic's low-code designer, as the assessment asked.</dd></dl>
-      <dl><dt>How I checked it</dt><dd class="auto">The assignment came with no sample data, so I created dummy records in a live account, ran the integration and query against them, confirmed every field came back as expected, and then deleted the test data.</dd></dl>
-      <dl><dt>What I shared</dt><dd>A support runbook PDF for Chris and Josh, covering the build, how I verified it, and the mistakes I hit along the way.</dd></dl>
+      <h3><small>Submitted</small>Low-code</h3>
+      <dl><dt>What I built</dt><dd>The integration in Prismatic's low-code designer, and the query against Prismatic's GraphQL API, as the assessment asked.</dd></dl>
+      <dl><dt>How I checked it</dt><dd class="auto">I ran the integration with a saved test payload and checked the message that actually arrived, not just the preview. The query came with no sample data, so I created a disposable test customer and user in a live account, confirmed the query returned every field, and then deleted the test records.</dd></dl>
+      <dl><dt>What I added</dt><dd>Afterward, a support runbook for the build: step-by-step instructions, how I verified each part, the mistakes I hit and how I fixed them, and an error decoder.</dd></dl>
     </div>
     <div class="sd">
-      <h3><small>Second</small>Code-native</h3>
-      <dl><dt>Why</dt><dd>Once the first version worked, I wanted to see the same problem from a developer's side, so I rebuilt it as a code-native integration in TypeScript with the Spectral SDK and the Prism CLI.</dd></dl>
-      <dl><dt>How I checked it</dt><dd class="auto">Imported it into Prismatic, sent the same test payload, and confirmed the result in the execution logs.</dd></dl>
-      <dl><dt>What I shared</dt><dd>A companion runbook: what a healthy run looks like in the logs, known limitations, and what I'd change before production.</dd></dl>
+      <h3><small>Extra</small>Code-native</h3>
+      <dl><dt>Why</dt><dd>Once the assessment was in, I wanted to see the same problem from a developer's side, so I rebuilt it as a code-native integration in TypeScript with the Spectral SDK and the Prism CLI.</dd></dl>
+      <dl><dt>How I checked it</dt><dd class="auto">Built and imported it with the Prism CLI, ran a live test, and confirmed the message posted.</dd></dl>
+      <dl><dt>What I added</dt><dd>A companion runbook comparing low-code and code-native for the same use case, how to debug from the execution logs, and seven changes I'd make before production.</dd></dl>
     </div>
   </div>
+  <div class="col"><p>I sent both runbooks to Chris and Josh before my interview, as optional reading.</p></div>
   <p class="callout">Both versions were well received. I felt very comfortable talking them through with Chris and Josh, and I came away believing we'd work well together as a team.</p>
 </section>
 
@@ -345,14 +346,14 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
       <thead><tr><th>Posting asks for</th><th></th><th>Where I've done it</th></tr></thead>
       <tbody>
         <tr><td>3+ years in technical support or engineering</td><td><span class="chip strong">Strong</span></td><td class="evidence">Nearly 8 years as a Senior Technical Support Engineer on Polarion ALM at Siemens, owning enterprise escalations end to end. Cloud Migration Engineer at Atlassian since January 2025.</td></tr>
-        <tr><td>REST, GraphQL, SOAP</td><td><span class="chip strong">REST</span> <span class="chip partial">GraphQL, SOAP</span></td><td class="evidence">REST daily at Atlassian and Siemens to diagnose and validate customer environments. GraphQL hands-on in the webhook demo. SOAP I'd ramp up on through the connectors that use it.</td></tr>
+        <tr><td>REST, GraphQL, SOAP</td><td><span class="chip strong">REST</span> <span class="chip partial">GraphQL, SOAP</span></td><td class="evidence">REST daily at Atlassian and Siemens to diagnose and validate customer environments. GraphQL hands-on against Prismatic's own API in the take-home, and in the webhook demo. SOAP I'd ramp up on through the connectors that use it.</td></tr>
         <tr><td>OAuth 2.0 and JWT</td><td><span class="chip strong">OAuth</span> <span class="chip partial">JWT</span></td><td class="evidence">Resolve SSO/SAML and OAuth failures with security and identity teams during Atlassian cloud cutovers. Built OAuth into FitBike and an authorization code flow with CSRF protection in the webhook demo. JWT I know from the same token-debugging work, not by name.</td></tr>
         <tr><td>JSON, XML, YAML, CSV</td><td><span class="chip strong">Strong</span></td><td class="evidence">JSON in every REST investigation. The webhook demo reads JSON payloads, loads YAML config and writes a CSV event log.</td></tr>
         <tr><td>Read and debug JavaScript, Node.js, TypeScript</td><td><span class="chip strong">Strong</span></td><td class="evidence">The webhook demo is TypeScript on Node.js. Built AvalancheMapper and Smartcar API integrations in Node.js. My professional scripting has been Python and Ruby.</td></tr>
         <tr><td>Customer-facing communication</td><td><span class="chip strong">Strong</span></td><td class="evidence">200+ published technical solution articles. Training and product demos for client teams at Siemens. Runbooks and onboarding material for new engineers at Atlassian.</td></tr>
         <tr><td>Work with Engineering and Product; report trends</td><td><span class="chip strong">Strong</span></td><td class="evidence">Escalate to engineering and product at Atlassian and feed customer trends back into product decisions. On-call rotations at Siemens and Atlassian.</td></tr>
         <tr><td>Webhooks (bonus)</td><td><span class="chip strong">Built</span></td><td class="evidence">Signature verification, duplicate-delivery handling and follow-up API calls in the webhook demo, tested with real GitHub deliveries.</td></tr>
-        <tr><td>Low-code flow builders (bonus)</td><td><span class="chip strong">Strong</span></td><td class="evidence">Jira Automation daily at Atlassian. Administered Jira and Confluence workflows for 2,000 users at Pandora. Three production Rovo agents at Atlassian.</td></tr>
+        <tr><td>Low-code flow builders (bonus)</td><td><span class="chip strong">Strong</span></td><td class="evidence">Built the take-home in Prismatic's low-code designer. Jira Automation daily at Atlassian. Administered Jira and Confluence workflows for 2,000 users at Pandora. Three production Rovo agents at Atlassian.</td></tr>
       </tbody>
     </table>
   </div>
