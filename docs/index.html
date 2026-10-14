@@ -241,7 +241,7 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
 
 <section>
   <div class="eyebrow">Who's on the other end</div>
-  <h2>Four kinds of user, four kinds of ticket</h2>
+  <h2>Five kinds of user, five kinds of ticket</h2>
   <div class="col"><p>The posting says support covers "technical and non-technical customers." On Prismatic, that range is wide. Each kind of user needs a different first question.</p></div>
   <div class="tablebox">
     <table>
@@ -251,6 +251,7 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
         <tr><td>Low-code builder</td><td>Assembling flows from connectors in the integration designer</td><td>References between steps, data format conversion, branching and loops over paginated results</td><td>Each step's input and output in the failing execution</td></tr>
         <tr><td>End user with AI Copilot</td><td>Describing a workflow in plain language inside their vendor's product</td><td>A plausible workflow with one field mapped wrong, or a connector the vendor didn't expose</td><td>The steps Copilot generated on the canvas, and the workflow template and connectors allowed</td></tr>
         <tr><td>End user installing an integration</td><td>Enabling an integration from the embedded marketplace and filling in the config wizard</td><td>OAuth (the standard for letting one app access another on a user's behalf) connection failures, wrong redirect URI (the address users return to after signing in) or scopes, credentials that later expire or get revoked</td><td>The connection's auth state, scopes, and the config values for that instance</td></tr>
+        <tr><td>AI agent calling flows</td><td>Using a vendor's flows as tools through the MCP (Model Context Protocol, the standard AI agents use to call outside tools) flow server</td><td>The flow ran correctly, but the agent chose the wrong flow or sent the wrong inputs</td><td>The flow's invocation schema, and the inputs the agent actually sent in the execution</td></tr>
       </tbody>
     </table>
   </div>
@@ -261,9 +262,9 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
   <h2>Work through the layers, write it down, escalate cleanly</h2>
   <div class="col"><p>The posting names the main categories: "debugging API requests, authentication issues, and data formatting challenges." I'd check the cheapest layer to rule out first, and keep notes as I go so the escalation is already written if I need one.</p></div>
   <div class="layers">
-    <div class="layer"><span class="tag">Delivery</span><h3>Did it arrive?</h3><ul><li>Trigger fired, or schedule ran in the right timezone</li><li>Correct webhook URL for this instance and flow</li><li>Endpoint security and API keys</li><li>Retries and duplicate deliveries from the sender</li></ul></div>
+    <div class="layer"><span class="tag">Delivery</span><h3>Did it arrive?</h3><ul><li>Trigger fired, or schedule ran in the right timezone</li><li>Correct webhook URL for this instance and flow</li><li>Endpoint security and API keys</li><li>Retries and duplicate deliveries from the sender</li><li>Concurrency limits and FIFO (first-in, first-out) queues, where a backed-up queue looks like a run that never happened</li></ul></div>
     <div class="layer"><span class="tag">Auth</span><h3>Who is calling?</h3><ul><li>401 means the credentials are missing or invalid; 403 means they lack permission</li><li>OAuth refresh token expired or revoked</li><li>Scopes changed on the third-party app</li><li>Auth code versus client credentials; JWT (JSON Web Token) expiry and clock skew</li></ul></div>
-    <div class="layer"><span class="tag">Data</span><h3>Is the shape right?</h3><ul><li>Content type matches the body: XML (Extensible Markup Language), JSON (JavaScript Object Notation) or CSV (comma-separated values)</li><li>Nesting and paths after parsing</li><li>Pagination that stops after page one</li><li>Encoding, date formats, nulls, optional fields</li></ul></div>
+    <div class="layer"><span class="tag">Data</span><h3>Is the shape right?</h3><ul><li>Content type matches the body: XML (Extensible Markup Language), JSON (JavaScript Object Notation) or CSV (comma-separated values)</li><li>Nesting and paths after parsing</li><li>Pagination that stops after page one</li><li>Encoding, date formats, nulls, optional fields</li><li>Batch imports: which records failed, and which went through</li></ul></div>
     <div class="layer"><span class="tag">Third party</span><h3>What did they say?</h3><ul><li>Rate limits and <code>Retry-After</code></li><li>Timeouts and 5xx responses</li><li>API version changes and deprecations</li><li>A 200 response that didn't do anything</li></ul></div>
   </div>
   <div class="col"><p>Every escalation includes the symptom, the customer and instance, the execution IDs, what I ruled out and how, and how many customers it affects.</p></div>
@@ -395,11 +396,11 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
   <h2>What I want to learn from Prismatic</h2>
   <ol class="questions col">
     <li>Why is support moving into Customer Engineering, how will support and solutions engineering divide the work, and how do support findings reach Product today?</li>
-    <li>As end users build workflows with Copilot, what new kinds of tickets are you seeing or expecting?</li>
+    <li>As end users build workflows with Copilot, and AI agents start calling flows through the MCP flow server, what new kinds of tickets are you seeing or expecting?</li>
     <li>When vendors offer customer-built workflows, how often do their customers ask about data isolation and DPAs, and does support answer those questions or hand them to someone else?</li>
     <li>When customers connect to home-grown systems, like a custom ERP or an in-house database, what makes those tickets hard: network access, undocumented APIs, or data formats?</li>
     <li>Which layer causes the most tickets today (auth, data formats, third-party APIs, or platform how-to questions), and how much of the role is reactive tickets versus docs, tooling and proactive outreach?</li>
-    <li>How will the execution and debugging redesign change how support troubleshoots?</li>
+    <li>How will the execution and debugging redesign, and the alert overhaul planned after it, change how support troubleshoots, and does support have input into them?</li>
     <li>What would a strong first 90 days look like on your team?</li>
   </ol>
 </section>
@@ -407,7 +408,7 @@ footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
 <footer>
   <p>Written by David Deuber from public sources and the posted job description. These are my assumptions, not Prismatic's internal processes.</p>
   <ul>
-    <li><a href="https://prismatic.io/blog/prismatic-connect-2026-recap/">Prismatic Connect 2026 recap</a>: execution and workflow numbers, released features and roadmap (Sept 2026)</li>
+    <li><a href="https://prismatic.io/blog/prismatic-connect-2026-recap/">Prismatic Connect 2026 recap</a>: execution and workflow numbers, released features including large-data handling and the MCP flow server, and the roadmap (Sept 2026)</li>
     <li><a href="https://vimeo.com/1227852381">Launch AI-Built Workflows Inside Your Product</a>: Jake Hagle's Connect 2026 session on workflow templates, customer-built workflows and the security model behind them (Sept 2026)</li>
     <li><a href="https://prismatic.io/blog/ai-copilot-for-embedded-workflow-builder-early-access/">AI Copilot for the Embedded Workflow Builder</a>: plan and auto modes, early access (Mar 2026)</li>
     <li><a href="https://prismatic.io/blog/build-faster-smarter-with-ai-and-best-practices/">Build Faster and Smarter with AI and Best Practices</a>: Prismatic's AI ruleset for coding assistants (May 2025)</li>
